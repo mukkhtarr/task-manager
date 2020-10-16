@@ -1,7 +1,7 @@
-//require the mongodb module
-const mongodb = require('mongodb')
-const MongoClient = mongodb.MongoClient
+/* CRUD OPERATION WITH NODEJS */
 
+//require the mongodb module
+const {MongoClient, ObjectID} = require('mongodb')
 //Connect to database
 
 const connectionURL = 'mongodb://127.0.0.1:27017'
@@ -28,27 +28,42 @@ MongoClient.connect(connectionURL,{useUnifiedTopology: true},(error,client)=>{
 //     }
 //     console.log("New document created");
 //   })
-  db.collection('tasks').insertMany([
-    {
-      description: "teamtreehouse front-end track",
-      completed: true
-    },
-    {
-      description: "teamtreehouse Javascript track",
-      completed: true
-    },
-    {
-      description: "Udemy NodeJS",
-      completed: false
-    }
-  ],(error,result)=>{
+  // db.collection('tasks').insertMany([
+  //   {
+  //     description: "teamtreehouse front-end track",
+  //     completed: true
+  //   },
+  //   {
+  //     description: "teamtreehouse Javascript track",
+  //     completed: true
+  //   },
+  //   {
+  //     description: "Udemy NodeJS",
+  //     completed: false
+  //   }
+  // ],(error,result)=>{
+  //   if(error){
+  //     return console.log("Unable to insert records at this time")
+  //   }
+
+  //   console.log(result.ops)
+  // })
+
+  //read a single document/row
+  db.collection('tasks').findOne({_id: new ObjectID('5f89281a7702853060f4ec02')},(error,task)=>{
     if(error){
-      return console.log("Unable to insert records at this time")
+      return console.log('something went wrong')
     }
 
-    console.log(result.ops)
+    console.log(task);
+
   })
 
+  //read many records
+
+  db.collection('tasks').find({completed:true}).toArray((error,tasks)=>{
+    console.log(tasks)
+  })
 
  })
 
