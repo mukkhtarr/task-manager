@@ -18,21 +18,39 @@ MongoClient.connect(connectionURL,{useUnifiedTopology: true},(error,client)=>{
   // create a database if not already exist
   const db = client.db(databaseName);
 
-  //create a Collection eq. Table and insert one new Document/Row
-  db.collection('users',(error,result)=>{
+//   //create a Collection eq. Table and insert one new Document/Row
+//   db.collection('users').insertOne({
+//     name:'Andrew',
+//     age: 27
+//   },(error,result)=>{
+//     if(error){
+//       return console.log("record could not be created");
+//     }
+//     console.log("New document created");
+//   })
+  db.collection('tasks').insertMany([
+    {
+      description: "teamtreehouse front-end track",
+      completed: true
+    },
+    {
+      description: "teamtreehouse Javascript track",
+      completed: true
+    },
+    {
+      description: "Udemy NodeJS",
+      completed: false
+    }
+  ],(error,result)=>{
     if(error){
-      return console.log('collection could not be created!')
+      return console.log("Unable to insert records at this time")
     }
 
-    result.insertOne({
-      name:'Mukhtar',
-      age: 31
-    },(error,insertRes)=>{
-      if(error){
-        return console.log("record could not be created");
-      }
-      console.log("New document created");
-    })
-
+    console.log(result.ops)
   })
-})
+
+
+ })
+
+
+
