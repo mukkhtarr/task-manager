@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const Task = mongoose.model('Tasks',{
+const taskSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
@@ -11,6 +11,8 @@ const Task = mongoose.model('Tasks',{
     default: false
   }
 })
+
+const Task = mongoose.model('Tasks',taskSchema)
 
 // const myTask = new Tasks({
 //   description:"TeamTreeHouse JavaScript course",

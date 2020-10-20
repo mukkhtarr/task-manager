@@ -1,6 +1,7 @@
 const express = require('express')
 const router = new express.Router()
 const User = require('../model/user')
+const auth = require('../middleware/auth')
 
 // create a new user
 router.post('/users', async (req,res)=>{
@@ -8,17 +9,57 @@ router.post('/users', async (req,res)=>{
 
   try {
     await user.save()
-    res.status(201).send(user)
+    const token = await user.generateAuthToken()
+    res.status(201).send({user,token})
   } catch (e) {
     res.status(400).send(e)
   }
 
 })
-//get all users
-router.get('/users', async (req,res)=>{
+
+//login a user
+
+router.post('/users/login', async (req,res)=>{
   try {
-    const users = await User.find({})
-    res.send(users)
+    const user = await User.findByCredentials(req.body.email, req.body.password)
+    const token = await user.generateAuthToken()
+
+    res.send({user, token})
+  } catch (e) {
+    res.status(400).send(e)
+  }
+
+})
+
+router.post('/users/logout',auth,async (req,res)=>{
+  try {
+    req.user.tokens = req.user.tokens.filter((t)=>{
+      return t.token !== req.token
+    })
+    await req.user.save()
+    res.send()
+  } catch (e) {
+    res.status(500).send()
+  }
+})
+
+//logout from all devices
+
+router.post('/users/logoutAll',auth,async (req,res)=>{
+  try {
+    req.user.tokens = []
+    await req.user.save()
+    res.send()
+  } catch (e) {
+    res.status(500).send()
+  }
+  
+})
+
+//get profile
+router.get('/users/me',auth, async (req,res)=>{
+  try {
+    res.send(req.user)
   } catch (e) {
     res.status(500).send(e)
   }
@@ -37,8 +78,8 @@ router.get('/users/:id', async (req,res)=>{
   }
   
 })
-//update a user info
-router.patch('/users/:id', async (req,res)=>{
+//update my info
+router.patch('/users/me', auth, async (req,res)=>{
   try {
     const reqKeys = Object.keys(req.body)
     const allowedKeys = ['name', 'email', 'age', 'password']
@@ -47,27 +88,28 @@ router.patch('/users/:id', async (req,res)=>{
     if(!isReqAllowed){
       return res.status(400).send({error:"Update operation not allowed."})
     }
-    
-    const user = await User.findByIdAndUpdate(req.params.id,req.body,{runValidators:true,new:true})
-    if(!user){
-      return res.status(404).send()
-    }
 
+    const user = req.user
+
+    reqKeys.forEach((key)=> user[key]=req.body[key])
+
+     await user.save()
+    
+    // const user = await User.findByIdAndUpdate(req.params.id,req.body,{runValidators:true,new:true})
+
+  
     res.send(user)
   } catch (e) {
     res.status(400).send(e)
   }
 })
 
-//delete a user
+//delete my profile
 
-router.delete('/users/:id',async (req,res)=>{
+router.delete('/users/me',auth, async (req,res)=>{
   try {
-    const user = await User.findByIdAndDelete(req.params.id)
-    if(!user){
-      return res.status(404).send({error:"User not found"})
-    }
-    res.send(user)
+    req.user.remove()
+    res.send(req.user)
   } catch (e) {
     res.status(400).send()
   }
